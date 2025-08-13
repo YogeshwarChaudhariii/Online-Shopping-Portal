@@ -7,9 +7,9 @@ class Items
     int ItemNo, Price;
     string ItemName;
 
-    Items(int Id, int p, string Iname)
+    Items(int No, int p, string Iname)
     {
-        ItemNo = Id;
+        ItemNo = No;
         Price = p;
         ItemName = Iname;
     }
@@ -50,4 +50,5 @@ int main()
 
 
     return 0;
+
 }
