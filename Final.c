@@ -1,11 +1,12 @@
 #include<stdio.h>
 #include<string.h>
+#include<stdlib.h>
 
-///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 //
 //  User defined Macros
 //
-///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 
 // Max Restaurant Size
 # define RESTAURANTSIZE 10
@@ -110,7 +111,7 @@ void EmptyCart(struct CartItem cart[], int* iCount)
     for (int i = 0; i < *iCount; i++)
     {
         cart[i].item.No = 0;
-        strcpy(cart[i].item.name, "");  //change
+        strcpy(cart[i].item.name, "");  
         cart[i].item.price = 0.0;
         cart[i].quantity = 0;
     }
@@ -264,7 +265,7 @@ void InputRestaurantDetails(struct Restaurant restaurant[], int RestaurantCount)
         printf("Enter Restaurant Name: ");
         scanf(" %[^\n]", restaurant[i].RName);   
 
-        printf("How many Items for Restaurant :%s", restaurant[i].RName);
+        printf("How many Items for Restaurant %s :", restaurant[i].RName);
         scanf("%d", &restaurant[i].ItemCount);
 
         for (int j = 0; j < restaurant[i].ItemCount; j++)
@@ -319,7 +320,7 @@ int main()
 
     int CartCount = 0;
 
-    int iChoice, Id, Qty, RestaurantChoice, OtherRestChoice, RestCount;
+    int iChoice, Id, Qty, RestaurantChoice, OtherRestChoice, RestCount, AvaRestNewRest;
 
 ///////////////////////////////////////////////////////////////
 //
@@ -333,7 +334,7 @@ int main()
 // Restaurant 1
 //
 ///////////////////////////////////////////////////////////////
-    rarr[0].RId = 1;                                                
+    rarr[0].RId = 1;                                               
     strcpy(rarr[0].RName, "Good Food");
     rarr[0].menu[0].No = 1;
     strcpy(rarr[0].menu[0].name, "Samosa");
@@ -412,14 +413,44 @@ int main()
     rarr[2].menu[4].price = 110;
     rarr[2].ItemCount = 5;
 
-    printf("------- Marvellous Canteen ------\n");
-    
-    ShowRestaurant(rarr, 3);
+    printf("------- Marvellous Canteen ------\n\n");
+
+    printf("See available Restaurants...? Press 1: \n");
+    printf("Add new Restaurant...? Press 2: \n");
+    printf("Exit..? Press 0: \n");
+    printf("Enter your choice: \n");
+    scanf("%d",&AvaRestNewRest);
+
+    if (AvaRestNewRest == 1)
+    {
+        ShowRestaurant(rarr, 3);
 
     printf("Select restaurant: ");
     scanf("%d", &RestaurantChoice);
 
-    ShowItems(rarr, RestaurantChoice);   
+    ShowItems(rarr, RestaurantChoice);
+    }
+    else if (AvaRestNewRest == 2)
+    {
+        printf("How many Restaurants do you want to add :");
+            scanf("%d", &RestCount);
+
+            struct Restaurant restaurant[RESTAURANTSIZE];
+            InputRestaurantDetails(restaurant, RestCount);
+            DisplayRestaurantDetails(restaurant, RestCount);
+
+            exit(EXIT_SUCCESS);
+    }
+    else if (AvaRestNewRest == 0)
+    {
+        exit(EXIT_SUCCESS);
+    }
+    
+    else
+    {
+        printf("Invalid Choice\n");
+        exit(EXIT_FAILURE);
+    }
 
     while (1)
     {
@@ -476,7 +507,7 @@ int main()
             break;
 
         case 6:
-            printf("How many Restaurants do you want to add :");
+            printf("How many Restaurants do you want to add ):");
             scanf("%d", &RestCount);
 
             struct Restaurant restaurant[RESTAURANTSIZE];
@@ -487,6 +518,8 @@ int main()
 
         default:
             printf("Invalid choice!\n");
+
+            exit(EXIT_FAILURE);
         }
     }
 
