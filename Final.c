@@ -16,7 +16,21 @@
 
 ///////////////////////////////////////////////////////////////
 //
-// Structure for Item, Restaurant, CartItem
+// Structure : LoginPage
+// Use : Holds information about Login Username and Password
+//
+///////////////////////////////////////////////////////////////
+struct LoginPage
+{
+    char UserName[20];
+    char PassWord[16];
+    char FileName[20];
+};
+
+///////////////////////////////////////////////////////////////
+//
+// Structure : Item
+// Use : Holds information about Items in Restautant
 //
 ///////////////////////////////////////////////////////////////
 struct Item
@@ -26,6 +40,12 @@ struct Item
     float price;
 };
 
+///////////////////////////////////////////////////////////////
+//
+// Structure : Restaurant
+// Use : Holds information about Restautant
+//
+///////////////////////////////////////////////////////////////
 struct Restaurant
 {
     int RId;
@@ -34,6 +54,12 @@ struct Restaurant
     struct Item menu[ITEMSIZE];
 };
 
+///////////////////////////////////////////////////////////////
+//
+// Structure : CartItem
+// Use : Holds information about Items in Cart
+//
+///////////////////////////////////////////////////////////////
 struct CartItem
 {
     struct Item item;
@@ -42,7 +68,84 @@ struct CartItem
 
 ///////////////////////////////////////////////////////////////
 //
+// Function : CustomerAccount
+// Use : Customer can login to the portal
+//
+///////////////////////////////////////////////////////////////
+void CustomerAccount(struct LoginPage* loginpage)
+{
+    FILE *fp;
+    char line[100], fileUser[20], filePass[16];
+
+    fp = fopen("AccountLogin.txt", "r");
+
+    printf("Enter your username: ");
+    scanf("%s", loginpage->UserName);  
+
+    printf("Enter your password: ");
+    scanf("%s", loginpage->PassWord);
+
+    while (fgets(line, sizeof(line), fp)) 
+    {
+        if (sscanf(line, "%[^,],%s", fileUser, filePass) == 2) 
+        {
+            if (strcmp(fileUser, loginpage->UserName) == 0 && strcmp(filePass, loginpage->PassWord) == 0) 
+            {
+                fclose(fp);
+                printf("Login successful...!\n");
+            }
+            else
+            {
+                printf("Login failed... Invalid username or password...!\n");
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+    fclose(fp);
+}
+
+///////////////////////////////////////////////////////////////
+//
+// Function : RestaurantLogin
+// Use : Customer can login to the portal
+//
+///////////////////////////////////////////////////////////////
+void RestaurantLogin(struct LoginPage* loginpage)
+{
+    FILE *fp;
+    char line[100], fileUser[20], filePass[16];
+
+    fp = fopen("RestaurantLogin.txt", "r");
+
+    printf("Enter your username: ");
+    scanf("%s", loginpage->UserName);  
+
+    printf("Enter your password: ");
+    scanf("%s", loginpage->PassWord);
+
+    while (fgets(line, sizeof(line), fp)) 
+    {
+        if (sscanf(line, "%[^,],%s", fileUser, filePass) == 2) 
+        {
+            if (strcmp(fileUser, loginpage->UserName) == 0 && strcmp(filePass, loginpage->PassWord) == 0) 
+            {
+                fclose(fp);
+                printf("Login successful...!\n");
+            }
+            else
+            {
+                printf("Login failed... Invalid username or password...!\n");
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+    fclose(fp);
+}
+
+///////////////////////////////////////////////////////////////
+//
 // Function : ShowRestaurant
+// Use : Show available restaurants
 //
 ///////////////////////////////////////////////////////////////
 void ShowRestaurant(struct Restaurant restaurant[], int no)
@@ -59,6 +162,7 @@ void ShowRestaurant(struct Restaurant restaurant[], int no)
 ///////////////////////////////////////////////////////////////
 //
 // Function : ShowItems
+// Use : Show available items of the specific restaurant
 //
 ///////////////////////////////////////////////////////////////
 void ShowItems(struct Restaurant rarr[], int iChoice)
@@ -77,6 +181,7 @@ void ShowItems(struct Restaurant rarr[], int iChoice)
 ///////////////////////////////////////////////////////////////
 //
 // Function : ShowCart
+// Use : Show Items those are added in the cart
 //
 ///////////////////////////////////////////////////////////////
 void ShowCart(struct CartItem cart[], int iCount)
@@ -104,6 +209,7 @@ void ShowCart(struct CartItem cart[], int iCount)
 ///////////////////////////////////////////////////////////////
 //
 // Function : EmptyCart
+// Use : Use to delete added items
 //
 ///////////////////////////////////////////////////////////////
 void EmptyCart(struct CartItem cart[], int* iCount)
@@ -124,19 +230,22 @@ void EmptyCart(struct CartItem cart[], int* iCount)
 ///////////////////////////////////////////////////////////////
 //
 // Function : Checkout
+// Use : Use for checkout the added items in the cart
 //
 ///////////////////////////////////////////////////////////////
 float Checkout(struct CartItem cart[], int iCount)
 {
+    int i = 0;
     float Total = 0;
 
     printf("\n------ Checkout ------\n");
-    if (iCount == 0) {
+    if (iCount == 0) 
+    {
         printf("Your cart is empty...\n");
         return 0;
     }
 
-    for (int i = 0; i < iCount; i++)
+    for (i = 0; i < iCount; i++)
     {
         printf("%s x %d = Rs %.2f\n",
             cart[i].item.name, cart[i].quantity,
@@ -155,7 +264,96 @@ float Checkout(struct CartItem cart[], int iCount)
 
 ///////////////////////////////////////////////////////////////
 //
+// Function : Apply Coupons
+// Use : Use for apply coupons to the items
+//
+///////////////////////////////////////////////////////////////
+float ApplyCoupons(struct CartItem cart[], int iCount)
+{
+    int i = 0, iChoice = 0;
+    float Total = 0;
+
+    printf("\n------ Apply Coupon ------\n");
+    if (iCount == 0) 
+    {
+        printf("Your cart is empty...\n");
+        return 0;
+    }
+
+    for (i = 0; i < iCount; i++)
+    {
+        printf("%s x %d = Rs %.2f\n",
+            cart[i].item.name, cart[i].quantity,
+            cart[i].item.price * cart[i].quantity);
+
+            Total += cart[i].item.price * cart[i].quantity;
+    }
+    float GST = Total * 0.18;
+    Total += GST;
+
+    if (Total < 100)
+    {
+        printf("\n\nPlease add minimum 100 Rs to apply coupons...\n\n");
+    }
+
+    printf("GST (18%%): Rs %.2f\n", GST);
+    printf("Total Bill: Rs %.2f\n", Total);
+
+    if (Total > 100)
+    {
+        printf("\nApply Coupons...!\n\n");
+        printf("Total price is greater than 100 then 40 Rs off... Apply Press 1\n");
+        printf("Total price is greater than 250 then 125 Rs off... Apply Press 2\n");
+        printf("Total price is greater than 499 then 175 Rs off... Apply Press 3\n");
+        printf("Total price is greater than 999 then 299 Rs off... Apply Press 4\n");
+        scanf("%d",&iChoice);
+
+        switch (iChoice)
+        {
+            case 1:
+                if (Total > 100)
+                {
+                    Total = Total - 40;
+                    printf("\nTotal Bill: Rs %.2f\n", Total);
+                }
+                break;
+            
+            case 2:
+                if (Total > 250)
+                {
+                    Total = Total - 125;
+                    printf("\nTotal Bill: Rs %.2f\n", Total);
+                }
+                break;
+            
+            case 3:
+                if (Total > 499)
+                {
+                    Total = Total - 175;
+                    printf("\nTotal Bill: Rs %.2f\n", Total);
+                }
+                break;
+            
+            case 4:
+                if (Total > 999)
+                {
+                    Total = Total - 299;
+                    printf("\nTotal Bill: Rs %.2f\n", Total);
+                }
+                break;
+            
+            default:
+                printf("Invalid Choice\n");
+                break;
+        }
+    }
+    return Total;
+}
+
+///////////////////////////////////////////////////////////////
+//
 // Function : RemoveItem
+// Use : Use to remove item or reduce quantity of items 
 //
 ///////////////////////////////////////////////////////////////
 void RemoveItem(struct CartItem cart[], int* iCount)
@@ -206,6 +404,7 @@ void RemoveItem(struct CartItem cart[], int* iCount)
 ///////////////////////////////////////////////////////////////
 //
 // Function : OtherRestaurant
+// Use : Show other available restaurants
 //
 ///////////////////////////////////////////////////////////////
 void OtherRestaurant(struct Restaurant rarr[], int iChoice)
@@ -224,6 +423,7 @@ void OtherRestaurant(struct Restaurant rarr[], int iChoice)
 ///////////////////////////////////////////////////////////////
 //
 // Function : AddToCart
+// Use : Add items in the cart
 //
 ///////////////////////////////////////////////////////////////
 void AddToCart(struct CartItem cart[], struct Restaurant rarr[], int * CartCount, int RestId, int ItemId, int Quantity)
@@ -251,6 +451,7 @@ void AddToCart(struct CartItem cart[], struct Restaurant rarr[], int * CartCount
 ///////////////////////////////////////////////////////////////
 //
 // Function : InputRestaurantDetails
+// Use : Add new restaurants and their items
 //
 ///////////////////////////////////////////////////////////////
 void InputRestaurantDetails(struct Restaurant restaurant[], int RestaurantCount)
@@ -287,6 +488,7 @@ void InputRestaurantDetails(struct Restaurant restaurant[], int RestaurantCount)
 ///////////////////////////////////////////////////////////////
 //
 // Function : DisplayRestaurantDetails
+// Use : Display newly added restaurants and their items
 //
 ///////////////////////////////////////////////////////////////
 void DisplayRestaurantDetails(struct Restaurant restaurant[], int RestaurantCount)
@@ -316,17 +518,22 @@ void DisplayRestaurantDetails(struct Restaurant restaurant[], int RestaurantCoun
 ///////////////////////////////////////////////////////////////
 int main()
 {
+
+// Initialized LoginPage
+    struct LoginPage loginpage;
+
+
+// Initialized CartItems
     struct CartItem Cart[30];
 
+
+// Initialized Variables
     int CartCount = 0;
 
-    int iChoice, Id, Qty, RestaurantChoice, OtherRestChoice, RestCount, AvaRestNewRest;
+    int iChoice, Id, Qty, RestaurantChoice, OtherRestChoice, RestCount, MainChoice;
 
-///////////////////////////////////////////////////////////////
-//
+
 // Initialized Restaurants
-//
-///////////////////////////////////////////////////////////////
     struct Restaurant rarr[3];
 
 ///////////////////////////////////////////////////////////////
@@ -334,28 +541,14 @@ int main()
 // Restaurant 1
 //
 ///////////////////////////////////////////////////////////////
-    rarr[0].RId = 1;                                               
+    rarr[0].RId = 1;
     strcpy(rarr[0].RName, "Good Food");
-    rarr[0].menu[0].No = 1;
-    strcpy(rarr[0].menu[0].name, "Samosa");
-    rarr[0].menu[0].price = 25;
-
-    rarr[0].menu[1].No = 2;
-    strcpy(rarr[0].menu[1].name, "Kachori");
-    rarr[0].menu[1].price = 20;
-
-    rarr[0].menu[2].No = 3;
-    strcpy(rarr[0].menu[2].name, "Vadapav");
-    rarr[0].menu[2].price = 40;
-
-    rarr[0].menu[3].No = 4;
-    strcpy(rarr[0].menu[3].name, "Paneer");
-    rarr[0].menu[3].price = 50;
-
-    rarr[0].menu[4].No = 5;
-    strcpy(rarr[0].menu[4].name, "Kanda Bhaji");
-    rarr[0].menu[4].price = 90;
     rarr[0].ItemCount = 5;
+    rarr[0].menu[0] = (struct Item){1, "Samosa", 25};
+    rarr[0].menu[1] = (struct Item){2, "Kachori", 20};
+    rarr[0].menu[2] = (struct Item){3, "Vadapav", 40};
+    rarr[0].menu[3] = (struct Item){4, "Paneer", 50};
+    rarr[0].menu[4] = (struct Item){5, "Kanda Bhaji", 90};
 
 ///////////////////////////////////////////////////////////////
 //
@@ -364,26 +557,12 @@ int main()
 ///////////////////////////////////////////////////////////////
     rarr[1].RId = 2;
     strcpy(rarr[1].RName, "Kakke da Paratha");
-    rarr[1].menu[0].No = 1;
-    strcpy(rarr[1].menu[0].name, "Bharta");
-    rarr[1].menu[0].price = 125;
-
-    rarr[1].menu[1].No = 2;
-    strcpy(rarr[1].menu[1].name, "Biryani");
-    rarr[1].menu[1].price = 35;
-
-    rarr[1].menu[2].No = 3;
-    strcpy(rarr[1].menu[2].name, "Paratha");
-    rarr[1].menu[2].price = 60;
-
-    rarr[1].menu[3].No = 4;
-    strcpy(rarr[1].menu[3].name, "Lassi");
-    rarr[1].menu[3].price = 85;
-
-    rarr[1].menu[4].No = 5;
-    strcpy(rarr[1].menu[4].name, "Kanda Bhaji");
-    rarr[1].menu[4].price = 70;
     rarr[1].ItemCount = 5;
+    rarr[1].menu[0] = (struct Item){1, "Bharta", 125};
+    rarr[1].menu[1] = (struct Item){2, "Biryani", 35};
+    rarr[1].menu[2] = (struct Item){3, "Paratha", 60};
+    rarr[1].menu[3] = (struct Item){4, "Lassi", 85};
+    rarr[1].menu[4] = (struct Item){5, "Kanda Bhaji", 70};
 
 ///////////////////////////////////////////////////////////////
 //
@@ -392,56 +571,59 @@ int main()
 ///////////////////////////////////////////////////////////////
     rarr[2].RId = 3;
     strcpy(rarr[2].RName, "Home Meal");
-    rarr[2].menu[0].No = 1;
-    strcpy(rarr[2].menu[0].name, "Roti");
-    rarr[2].menu[0].price = 15;
-
-    rarr[2].menu[1].No = 2;
-    strcpy(rarr[2].menu[1].name, "Kanda Pohe");
-    rarr[2].menu[1].price = 30;
-
-    rarr[2].menu[2].No = 3;
-    strcpy(rarr[2].menu[2].name, "Tikka Masala");
-    rarr[2].menu[2].price = 120;
-
-    rarr[2].menu[3].No = 4;
-    strcpy(rarr[2].menu[3].name, "Kofta");
-    rarr[2].menu[3].price = 150;
-
-    rarr[2].menu[4].No = 5;
-    strcpy(rarr[2].menu[4].name, "Dal Khichdi");
-    rarr[2].menu[4].price = 110;
     rarr[2].ItemCount = 5;
+    rarr[2].menu[0] = (struct Item){1, "Roti", 15};
+    rarr[2].menu[1] = (struct Item){2, "Kanda Pohe", 30};
+    rarr[2].menu[2] = (struct Item){3, "Tikka Masala", 120};
+    rarr[2].menu[3] = (struct Item){4, "Kofta", 150};
+    rarr[2].menu[4] = (struct Item){5, "Dal Khichdi", 110};
 
-    printf("------- Marvellous Canteen ------\n\n");
+///////////////////////////////////////////////////////////////
+//
+// Main Page
+//
+///////////////////////////////////////////////////////////////
+    printf("------- Chaudhari Canteen ------\n\n");
 
-    printf("See available Restaurants...? Press 1: \n");
-    printf("Add new Restaurant...? Press 2: \n");
+    printf("See available Restaurants as Guest...? Press 1: \n");
+    printf("Customer Login...? Press 2: \n");
+    printf("Add new Restaurant...? Press 3: \n");
     printf("Exit..? Press 0: \n");
-    printf("Enter your choice: \n");
-    scanf("%d",&AvaRestNewRest);
 
-    if (AvaRestNewRest == 1)
+    printf("Enter your choice: \n");
+    scanf("%d",&MainChoice);
+
+    if (MainChoice == 1)
     {
         ShowRestaurant(rarr, 3);
 
-    printf("Select restaurant: ");
-    scanf("%d", &RestaurantChoice);
+        printf("Select restaurant: ");
+        scanf("%d", &RestaurantChoice);
 
-    ShowItems(rarr, RestaurantChoice);
+        ShowItems(rarr, RestaurantChoice);
     }
-    else if (AvaRestNewRest == 2)
+    
+    else if (MainChoice == 2)
     {
-        printf("How many Restaurants do you want to add :");
-            scanf("%d", &RestCount);
-
-            struct Restaurant restaurant[RESTAURANTSIZE];
-            InputRestaurantDetails(restaurant, RestCount);
-            DisplayRestaurantDetails(restaurant, RestCount);
-
-            exit(EXIT_SUCCESS);
+        CustomerAccount(&loginpage);
     }
-    else if (AvaRestNewRest == 0)
+
+    else if (MainChoice == 3)
+    {
+        RestaurantLogin(&loginpage);
+
+        printf("How many Restaurants do you want to add :");
+        scanf("%d", &RestCount);
+
+        struct Restaurant restaurant[RESTAURANTSIZE];
+
+        InputRestaurantDetails(restaurant, RestCount);
+        DisplayRestaurantDetails(restaurant, RestCount);
+
+        exit(EXIT_SUCCESS);
+    }
+
+    else if (MainChoice == 0)
     {
         exit(EXIT_SUCCESS);
     }
@@ -452,15 +634,20 @@ int main()
         exit(EXIT_FAILURE);
     }
 
+///////////////////////////////////////////////////////////////
+//
+// Menu Page
+//
+///////////////////////////////////////////////////////////////
     while (1)
     {
         printf("------- Menu -------\n");
         printf("1) Add to Cart\n");
         printf("2) Show Cart\n");
         printf("3) Checkout\n");
-        printf("4) Remove Items From Cart\n");
-        printf("5) Select Other Restaurant\n");
-        printf("6) Add New Restaurant\n");
+        printf("4) Apply Coupons\n");
+        printf("5) Remove Items From Cart\n");
+        printf("6) Select Other Restaurant\n");
         printf("0) Exit\n");
 
         printf("Enter your choice: ");
@@ -475,8 +662,14 @@ int main()
         switch (iChoice)
         {
         case 1:
+            ShowItems(rarr, RestaurantChoice);
             printf("Enter Item ID: ");
             scanf("%d", &Id);
+            if (Id > rarr->ItemCount)
+            {
+                printf("Invalid choice\n");
+                break;
+            }
             printf("Enter Quantity: ");
             scanf("%d", &Qty);
 
@@ -492,10 +685,14 @@ int main()
             break;
 
         case 4:
-            RemoveItem(Cart, &CartCount);
+            ApplyCoupons(Cart, CartCount);
             break;
 
         case 5:
+            RemoveItem(Cart, &CartCount);
+            break;
+
+        case 6:
             ShowRestaurant(rarr, 3);
             EmptyCart(Cart, &CartCount);
 
@@ -504,16 +701,6 @@ int main()
 
             ShowItems(rarr, OtherRestChoice);
             RestaurantChoice = OtherRestChoice;
-            break;
-
-        case 6:
-            printf("How many Restaurants do you want to add ):");
-            scanf("%d", &RestCount);
-
-            struct Restaurant restaurant[RESTAURANTSIZE];
-            InputRestaurantDetails(restaurant, RestCount);
-            DisplayRestaurantDetails(restaurant, RestCount);
-            
             break;
 
         default:
