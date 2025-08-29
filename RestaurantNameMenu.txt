@@ -1,0 +1,20 @@
+RId 1 | RName = "Good Food"
+menu 1, "Samosa", 25,
+menu 2, "Kachori", 20,
+menu 3, "Lassi", 85,
+menu 4, "Paneer", 50,
+menu 5, "Kanda Bhaji", 90;
+
+RId 2 | RName = "Kakke da Paratha"
+menu 1, "Bharta", 125,
+menu 2, "Biryani", 135,
+menu 3, "Paratha", 60,
+menu 4, "Lassi", 85,
+menu 5, "Kanda Bhaji", 70;
+
+RId 3 | RName = "Home Meal"
+menu 1, "Roti", 15,
+menu 2, "Kanda Pohe", 30,
+menu 3, "Tikka Masala", 120,
+menu 4, "Kofta", 150,
+menu 5, "Dal Khichdi", 110;
