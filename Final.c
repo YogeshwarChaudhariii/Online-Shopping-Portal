@@ -1,6 +1,6 @@
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 ///////////////////////////////////////////////////////////////
 //
@@ -17,7 +17,7 @@
 ///////////////////////////////////////////////////////////////
 //
 // Structure : LoginPage
-// Use : Holds information about Login Username and Password
+// Use : Holds information about login Username and Password
 //
 ///////////////////////////////////////////////////////////////
 struct LoginPage
@@ -36,23 +36,29 @@ struct LoginPage
 struct Item
 {
     int No;
-    char name[50];   
+    char name[50];
     float price;
 };
 
 ///////////////////////////////////////////////////////////////
 //
-// Structure : Restaurant
+// Structure : Restaurant (With DoublySingularLinkedList)
 // Use : Holds information about Restautant
 //
 ///////////////////////////////////////////////////////////////
-struct Restaurant
+struct node
 {
     int RId;
-    char RName[50];  
-    int ItemCount; 
+    char RName[50];
     struct Item menu[ITEMSIZE];
+    int ItemCount;
+    struct node *next;
+    struct node *prev;
 };
+
+typedef struct node NODE;
+typedef struct node *PNODE;
+typedef struct node **PPNODE;
 
 ///////////////////////////////////////////////////////////////
 //
@@ -89,7 +95,8 @@ void CustomerAccount(struct LoginPage* loginpage)
     {
         if (sscanf(line, "%[^,],%s", fileUser, filePass) == 2) 
         {
-            if (strcmp(fileUser, loginpage->UserName) == 0 && strcmp(filePass, loginpage->PassWord) == 0) 
+            if (strcmp(fileUser, loginpage->UserName) == 0 && 
+                strcmp(filePass, loginpage->PassWord) == 0) 
             {
                 fclose(fp);
                 printf("Login successful...!\n");
@@ -127,7 +134,8 @@ void RestaurantLogin(struct LoginPage* loginpage)
     {
         if (sscanf(line, "%[^,],%s", fileUser, filePass) == 2) 
         {
-            if (strcmp(fileUser, loginpage->UserName) == 0 && strcmp(filePass, loginpage->PassWord) == 0) 
+            if (strcmp(fileUser, loginpage->UserName) == 0 && 
+                strcmp(filePass, loginpage->PassWord) == 0) 
             {
                 fclose(fp);
                 printf("Login successful...!\n");
@@ -144,18 +152,126 @@ void RestaurantLogin(struct LoginPage* loginpage)
 
 ///////////////////////////////////////////////////////////////
 //
+// Function : InsertFirst
+// Use : Inserting Restaurant Dynamically
+//
+///////////////////////////////////////////////////////////////
+void InsertFirst(PPNODE first, int id, char *name, struct Item items[], int itemCount)
+{
+    PNODE newn = (PNODE)malloc(sizeof(NODE));
+    newn->RId = id;
+    strcpy(newn->RName, name);
+    newn->ItemCount = itemCount;
+
+    for (int i = 0; i < itemCount; i++)
+        newn->menu[i] = items[i];
+
+    newn->next = *first;
+    newn->prev = NULL;
+
+    if (*first != NULL)
+        (*first)->prev = newn;
+
+    *first = newn;
+}
+
+///////////////////////////////////////////////////////////////
+//
+// Function : InsertLast
+// Use : Inserting Restaurant Dynamically
+//
+///////////////////////////////////////////////////////////////
+void InsertLast(PPNODE first, int id, char *name, struct Item items[], int itemCount)
+{
+    PNODE newn = (PNODE)malloc(sizeof(NODE));
+    newn->RId = id;
+    strcpy(newn->RName, name);
+    newn->ItemCount = itemCount;
+
+    for (int i = 0; i < itemCount; i++)
+        newn->menu[i] = items[i];
+
+    newn->next = NULL;
+    newn->prev = NULL;
+
+    if (*first == NULL)
+    {
+        *first = newn;
+    }
+    else
+    {
+        PNODE temp = *first;
+        while (temp->next != NULL)
+        {
+            temp = temp->next;
+        }
+        temp->next = newn;
+        newn->prev = temp;
+    }
+}
+
+///////////////////////////////////////////////////////////////
+//
+// Function : ReadFromFile 
+// Use : Load restaurants from file
+//
+///////////////////////////////////////////////////////////////
+void ReadFromFile(PPNODE head, const char *filename)
+{
+    FILE *fp = fopen(filename, "r");
+
+    char line[200];
+    int RId, itemNo, itemCount;
+    char RName[50], itemName[50];
+    float price;
+
+    while (fgets(line, sizeof(line), fp))
+    {
+        line[strcspn(line, "\n")] = 0; 
+        if (strncmp(line, "RId", 3) == 0)
+        {
+            if (sscanf(line, "RId %d | RName = \"%[^\"]\"", &RId, RName) == 2)
+            {
+                struct Item items[ITEMSIZE];
+                itemCount = 0;
+
+                while (fgets(line, sizeof(line), fp))
+                {
+                    line[strcspn(line, "\n")] = 0;
+
+                    if (strchr(line, ';')) 
+                        break;
+
+                    if (sscanf(line, "menu %d, \"%[^\"]\", %f,", &itemNo, itemName, &price) == 3)
+                    {
+                        items[itemCount].No = itemNo;
+                        strcpy(items[itemCount].name, itemName);
+                        items[itemCount].price = price;
+                        itemCount++;
+                    }
+                }
+
+                InsertLast(head, RId, RName, items, itemCount);
+            }
+        }
+    }
+
+    fclose(fp);
+}
+
+///////////////////////////////////////////////////////////////
+//
 // Function : ShowRestaurant
 // Use : Show available restaurants
 //
 ///////////////////////////////////////////////////////////////
-void ShowRestaurant(struct Restaurant restaurant[], int no)
+void ShowRestaurant(PNODE first)
 {
-    printf("------ Available Restaurants ------\n");
-    for (int i = 0; i < no; i++)
+    printf("\n------ Available Restaurants ------\n");
+    while (first != NULL)
     {
-        printf("%d) %s\n", 
-        restaurant[i].RId, 
-        restaurant[i].RName);
+        printf("%d) %s\n", first->RId, first->RName);
+        first = first->next;
     }
 }
 
@@ -165,16 +281,23 @@ void ShowRestaurant(struct Restaurant restaurant[], int no)
 // Use : Show available items of the specific restaurant
 //
 ///////////////////////////////////////////////////////////////
-void ShowItems(struct Restaurant rarr[], int iChoice)
+void ShowItems(PNODE first, int iChoice)
 {
-    printf("------ Available Items ------\n");
-
-    for (int i = 0; i < rarr[iChoice - 1].ItemCount; i++)
+    while (first != NULL)
     {
-        printf("%d) %s - Rs %.2f\n",
-            rarr[iChoice - 1].menu[i].No, 
-            rarr[iChoice - 1].menu[i].name, 
-            rarr[iChoice - 1].menu[i].price);
+        if (first->RId == iChoice)
+        {
+            printf("\n------ Available Items ------\n");
+            for (int i = 0; i < first->ItemCount; i++)
+            {
+                printf("%d) %s - Rs %.2f\n",
+                       first->menu[i].No,
+                       first->menu[i].name,
+                       first->menu[i].price);
+            }
+            return;
+        }
+        first = first->next;
     }
 }
 
@@ -187,7 +310,6 @@ void ShowItems(struct Restaurant rarr[], int iChoice)
 void ShowCart(struct CartItem cart[], int iCount)
 {
     float total = 0;
-
     printf("\n------ Your Cart ------\n");
     if (iCount == 0)
     {
@@ -198,12 +320,104 @@ void ShowCart(struct CartItem cart[], int iCount)
     for (int i = 0; i < iCount; i++)
     {
         printf("%d. %s | Qty: %d | Price: Rs %.2f\n",
-            i + 1, cart[i].item.name, cart[i].quantity,
-            cart[i].item.price * cart[i].quantity);
+               i + 1, cart[i].item.name, cart[i].quantity,
+               cart[i].item.price * cart[i].quantity);
 
-            total += cart[i].item.price * cart[i].quantity;
+        total += cart[i].item.price * cart[i].quantity;
     }
     printf("Total: Rs %.2f\n", total);
+}
+
+///////////////////////////////////////////////////////////////
+//
+// Function : AddToCart
+// Use : Add items in the cart
+//
+///////////////////////////////////////////////////////////////
+void AddToCart(struct CartItem cart[], int *CartCount, struct Item item, int Quantity)
+{
+    for (int i = 0; i < *CartCount; i++)
+    {
+        if (cart[i].item.No == item.No && strcmp(cart[i].item.name, item.name) == 0)
+        {
+            cart[i].quantity += Quantity;
+            printf("Quantity updated!\n");
+            return;
+        }
+    }
+
+    cart[*CartCount].item = item;
+    cart[*CartCount].quantity = Quantity;
+    (*CartCount)++;
+    printf("Item added to cart!\n");
+}
+
+
+///////////////////////////////////////////////////////////////
+//
+// Function : RemoveItem
+// Use : Use to remove item or reduce quantity of items 
+//
+///////////////////////////////////////////////////////////////
+void RemoveItem(struct CartItem cart[], int* iCount)
+{
+    int choice, RemoveId, RemoveQuantity;
+
+    if (*iCount == 0)
+    {
+        printf("Cart is empty...\n");
+        return;
+    }
+
+    ShowCart(cart, *iCount);
+
+    printf("1) Remove item completely\n");
+    printf("2) Reduce quantity\n");
+    scanf("%d", &choice);
+
+    printf("Enter item number: ");
+    scanf("%d", &RemoveId);
+
+    if (choice == 1)
+    {
+        for (int i = RemoveId - 1; i < *iCount - 1; i++)
+        {
+            cart[i] = cart[i + 1];
+        }
+        (*iCount)--;
+        printf("Item removed!\n");
+    }
+    else if (choice == 2)
+    {
+        printf("Enter quantity to reduce: ");
+        scanf("%d", &RemoveQuantity);
+        cart[RemoveId - 1].quantity -= RemoveQuantity;
+
+        if (cart[RemoveId - 1].quantity <= 0) {
+            for (int i = RemoveId - 1; i < *iCount - 1; i++)
+            {
+                cart[i] = cart[i + 1];
+            }
+            (*iCount)--;
+        }
+        printf("Quantity updated...!\n");
+    }
+}
+
+///////////////////////////////////////////////////////////////
+//
+// Function : OtherRestaurant
+// Use : Show other available restaurants
+//
+///////////////////////////////////////////////////////////////
+void OtherRestaurant(PNODE first)
+{
+    printf("\n------ Available Restaurants ------\n");
+    while (first != NULL)
+    {
+        printf("%d) %s\n", first->RId, first->RName);
+        first = first->next;
+    }
 }
 
 ///////////////////////////////////////////////////////////////
@@ -227,10 +441,11 @@ void EmptyCart(struct CartItem cart[], int* iCount)
     printf("Cart is empty...\n");
 }
 
+
 ///////////////////////////////////////////////////////////////
 //
-// Function : Checkout
-// Use : Use for checkout the added items in the cart
+// Function : Apply Coupons
+// Use : Use for apply coupons to the items
 //
 ///////////////////////////////////////////////////////////////
 float Checkout(struct CartItem cart[], int iCount)
@@ -352,109 +567,11 @@ float ApplyCoupons(struct CartItem cart[], int iCount)
 
 ///////////////////////////////////////////////////////////////
 //
-// Function : RemoveItem
-// Use : Use to remove item or reduce quantity of items 
-//
-///////////////////////////////////////////////////////////////
-void RemoveItem(struct CartItem cart[], int* iCount)
-{
-    int choice, RemoveId, RemoveQuantity;
-
-    if (*iCount == 0)
-    {
-        printf("Cart is empty...\n");
-        return;
-    }
-
-    ShowCart(cart, *iCount);
-
-    printf("1) Remove item completely\n");
-    printf("2) Reduce quantity\n");
-    scanf("%d", &choice);
-
-    printf("Enter item number: ");
-    scanf("%d", &RemoveId);
-
-    if (choice == 1)
-    {
-        for (int i = RemoveId - 1; i < *iCount - 1; i++)
-        {
-            cart[i] = cart[i + 1];
-        }
-        (*iCount)--;
-        printf("Item removed!\n");
-    }
-    else if (choice == 2)
-    {
-        printf("Enter quantity to reduce: ");
-        scanf("%d", &RemoveQuantity);
-        cart[RemoveId - 1].quantity -= RemoveQuantity;
-
-        if (cart[RemoveId - 1].quantity <= 0) {
-            for (int i = RemoveId - 1; i < *iCount - 1; i++)
-            {
-                cart[i] = cart[i + 1];
-            }
-            (*iCount)--;
-        }
-        printf("Quantity updated...!\n");
-    }
-}
-
-///////////////////////////////////////////////////////////////
-//
-// Function : OtherRestaurant
-// Use : Show other available restaurants
-//
-///////////////////////////////////////////////////////////////
-void OtherRestaurant(struct Restaurant rarr[], int iChoice)
-{
-    printf("------ Available Items ------\n");
-
-    for (int i = 0; i < rarr[iChoice - 1].ItemCount; i++)
-    {
-        printf("%d) %s - Rs %.2f\n",
-            rarr[iChoice - 1].menu[i].No, 
-            rarr[iChoice - 1].menu[i].name, 
-            rarr[iChoice - 1].menu[i].price);
-    }
-}
-
-///////////////////////////////////////////////////////////////
-//
-// Function : AddToCart
-// Use : Add items in the cart
-//
-///////////////////////////////////////////////////////////////
-void AddToCart(struct CartItem cart[], struct Restaurant rarr[], int * CartCount, int RestId, int ItemId, int Quantity)
-{
-    for (int i = 0; i < *CartCount; i++)
-    {
-        if (cart[i].item.No == ItemId && strcmp(cart[i].item.name, rarr[RestId - 1].menu[ItemId - 1].name) == 0)
-        {
-            cart[i].quantity += Quantity;
-
-            printf("Quantity updated...!\n");
-            return;
-        }
-    }
-
-    cart[*CartCount].item = rarr[RestId - 1].menu[ItemId - 1];
-
-    cart[*CartCount].quantity = Quantity;
-
-    (*CartCount)++;
-
-    printf("Item added to cart!\n");
-}
-
-///////////////////////////////////////////////////////////////
-//
 // Function : InputRestaurantDetails
 // Use : Add new restaurants and their items
 //
 ///////////////////////////////////////////////////////////////
-void InputRestaurantDetails(struct Restaurant restaurant[], int RestaurantCount)
+void InputRestaurantDetails(struct node restaurant[], int RestaurantCount)
 {
     for (int i = 0; i < RestaurantCount; i++)
     {
@@ -491,7 +608,7 @@ void InputRestaurantDetails(struct Restaurant restaurant[], int RestaurantCount)
 // Use : Display newly added restaurants and their items
 //
 ///////////////////////////////////////////////////////////////
-void DisplayRestaurantDetails(struct Restaurant restaurant[], int RestaurantCount)
+void DisplayRestaurantDetails(struct node restaurant[], int RestaurantCount)
 {
     printf("\n--- Restaurant Details ---\n");
     for (int i = 0; i < RestaurantCount; i++)
@@ -518,65 +635,22 @@ void DisplayRestaurantDetails(struct Restaurant restaurant[], int RestaurantCoun
 ///////////////////////////////////////////////////////////////
 int main()
 {
-
-// Initialized LoginPage
-    struct LoginPage loginpage;
-
+// Declared head with NULL
+    PNODE head = NULL;
 
 // Initialized CartItems
-    struct CartItem Cart[30];
+    struct CartItem Cart[50]; 
 
+// Initialize Login
+    struct LoginPage loginpage;
 
 // Initialized Variables
-    int CartCount = 0;
+    int CartCount = 0; 
+    int MainChoice, iChoice, RestChoice, ItemId, Qty, RestCount, OtherRestaurantChoice;
 
-    int iChoice, Id, Qty, RestaurantChoice, OtherRestChoice, RestCount, MainChoice;
-
-
-// Initialized Restaurants
-    struct Restaurant rarr[3];
-
-///////////////////////////////////////////////////////////////
-//
-// Restaurant 1
-//
-///////////////////////////////////////////////////////////////
-    rarr[0].RId = 1;
-    strcpy(rarr[0].RName, "Good Food");
-    rarr[0].ItemCount = 5;
-    rarr[0].menu[0] = (struct Item){1, "Samosa", 25};
-    rarr[0].menu[1] = (struct Item){2, "Kachori", 20};
-    rarr[0].menu[2] = (struct Item){3, "Vadapav", 40};
-    rarr[0].menu[3] = (struct Item){4, "Paneer", 50};
-    rarr[0].menu[4] = (struct Item){5, "Kanda Bhaji", 90};
-
-///////////////////////////////////////////////////////////////
-//
-// Restaurant 2
-//
-///////////////////////////////////////////////////////////////
-    rarr[1].RId = 2;
-    strcpy(rarr[1].RName, "Kakke da Paratha");
-    rarr[1].ItemCount = 5;
-    rarr[1].menu[0] = (struct Item){1, "Bharta", 125};
-    rarr[1].menu[1] = (struct Item){2, "Biryani", 35};
-    rarr[1].menu[2] = (struct Item){3, "Paratha", 60};
-    rarr[1].menu[3] = (struct Item){4, "Lassi", 85};
-    rarr[1].menu[4] = (struct Item){5, "Kanda Bhaji", 70};
-
-///////////////////////////////////////////////////////////////
-//
-// Restaurant 3
-//
-///////////////////////////////////////////////////////////////
-    rarr[2].RId = 3;
-    strcpy(rarr[2].RName, "Home Meal");
-    rarr[2].ItemCount = 5;
-    rarr[2].menu[0] = (struct Item){1, "Roti", 15};
-    rarr[2].menu[1] = (struct Item){2, "Kanda Pohe", 30};
-    rarr[2].menu[2] = (struct Item){3, "Tikka Masala", 120};
-    rarr[2].menu[3] = (struct Item){4, "Kofta", 150};
-    rarr[2].menu[4] = (struct Item){5, "Dal Khichdi", 110};
+// Read restaurant from file
+    ReadFromFile(&head, "RestaurantNameMenu.txt");
+    
 
 ///////////////////////////////////////////////////////////////
 //
@@ -595,17 +669,21 @@ int main()
 
     if (MainChoice == 1)
     {
-        ShowRestaurant(rarr, 3);
+        ShowRestaurant(head);
 
         printf("Select restaurant: ");
-        scanf("%d", &RestaurantChoice);
-
-        ShowItems(rarr, RestaurantChoice);
+        scanf("%d", &RestChoice);
+        ShowItems(head, RestChoice);
     }
     
     else if (MainChoice == 2)
     {
-        CustomerAccount(&loginpage);
+        CustomerAccount(&loginpage);  
+
+        ShowRestaurant(head);
+        printf("Select restaurant: ");
+        scanf("%d", &RestChoice);
+        ShowItems(head, RestChoice);
     }
 
     else if (MainChoice == 3)
@@ -615,7 +693,7 @@ int main()
         printf("How many Restaurants do you want to add :");
         scanf("%d", &RestCount);
 
-        struct Restaurant restaurant[RESTAURANTSIZE];
+        struct node restaurant[RESTAURANTSIZE];
 
         InputRestaurantDetails(restaurant, RestCount);
         DisplayRestaurantDetails(restaurant, RestCount);
@@ -641,15 +719,16 @@ int main()
 ///////////////////////////////////////////////////////////////
     while (1)
     {
-        printf("------- Menu -------\n");
-        printf("1) Add to Cart\n");
-        printf("2) Show Cart\n");
-        printf("3) Checkout\n");
-        printf("4) Apply Coupons\n");
-        printf("5) Remove Items From Cart\n");
-        printf("6) Select Other Restaurant\n");
+        printf("\n------- Main Menu -------\n");
+        printf("1) Show Restaurants\n");
+        printf("2) Show Items \n");
+        printf("3) Add to Cart\n");
+        printf("4) Show Cart\n");
+        printf("5) CheckOut\n");
+        printf("6) Remove Items From Cart..?\n");
+        printf("7) Apply Coupons\n");
+        printf("8) Select Other Restaurant\n");
         printf("0) Exit\n");
-
         printf("Enter your choice: ");
         scanf("%d", &iChoice);
 
@@ -662,50 +741,73 @@ int main()
         switch (iChoice)
         {
         case 1:
-            ShowItems(rarr, RestaurantChoice);
-            printf("Enter Item ID: ");
-            scanf("%d", &Id);
-            if (Id > rarr->ItemCount)
-            {
-                printf("Invalid choice\n");
-                break;
-            }
-            printf("Enter Quantity: ");
-            scanf("%d", &Qty);
-
-            AddToCart(Cart, rarr, &CartCount, RestaurantChoice, Id, Qty);
+            ShowRestaurant(head);
             break;
 
         case 2:
-            ShowCart(Cart, CartCount);
+            ShowRestaurant(head);
+            printf("Enter Restaurant ID: ");
+            scanf("%d", &RestChoice);
+            ShowItems(head, RestChoice);
             break;
 
         case 3:
-            Checkout(Cart, CartCount);
+            ShowRestaurant(head);
+            printf("Enter Restaurant ID: ");
+            scanf("%d", &RestChoice);
+
+            ShowItems(head, RestChoice);
+            printf("Enter Item ID: ");
+            scanf("%d", &ItemId);
+            printf("Enter Quantity: ");
+            scanf("%d", &Qty);
+
+                PNODE temp = head;
+                while (temp != NULL)
+                {
+                    if (temp->RId == RestChoice && ItemId <= temp->ItemCount)
+                    {
+                        AddToCart(Cart, &CartCount, temp->menu[ItemId - 1], Qty);
+                        break;
+                    }
+                    temp = temp->next;
+                }
+            
             break;
 
         case 4:
-            ApplyCoupons(Cart, CartCount);
+            ShowCart(Cart, CartCount);
             break;
 
         case 5:
-            RemoveItem(Cart, &CartCount);
+            Checkout(Cart, CartCount);
             break;
 
         case 6:
-            ShowRestaurant(rarr, 3);
+            RemoveItem(Cart, &CartCount);
+            break;
+
+        case 7: 
+            ApplyCoupons(Cart, CartCount);
+            break;
+
+        case 8: 
+            ShowRestaurant(head);
             EmptyCart(Cart, &CartCount);
 
-            printf("Select restaurant: ");
-            scanf("%d", &OtherRestChoice);
+            ShowRestaurant(head);
 
-            ShowItems(rarr, OtherRestChoice);
-            RestaurantChoice = OtherRestChoice;
+            printf("Enter Restaurant ID: ");
+            scanf("%d", &OtherRestaurantChoice);
+
+            ShowItems(head, RestChoice);
+
+            RestChoice = OtherRestaurantChoice;
             break;
+
 
         default:
             printf("Invalid choice!\n");
-
             exit(EXIT_FAILURE);
         }
     }
