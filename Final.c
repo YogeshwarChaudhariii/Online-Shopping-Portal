@@ -1,6 +1,14 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+// Standart Input Output Header File
+#include<stdio.h>
+
+// Standart Library Header File
+#include<stdlib.h>
+
+// String Header File
+#include<string.h>
+
+// Unix Standart Header File (sleep function)
+#include<unistd.h>
 
 ///////////////////////////////////////////////////////////////
 //
@@ -30,7 +38,7 @@ struct LoginPage
 ///////////////////////////////////////////////////////////////
 //
 // Structure : Item
-// Use : Holds information about Items in Restautant
+// Use : Holds information about Items in Restaurant
 //
 ///////////////////////////////////////////////////////////////
 struct Item
@@ -42,7 +50,7 @@ struct Item
 
 ///////////////////////////////////////////////////////////////
 //
-// Structure : Restaurant (With DoublySingularLinkedList)
+// Structure : Restaurant (With DoublyLinearLinkedList)
 // Use : Holds information about Restautant
 //
 ///////////////////////////////////////////////////////////////
@@ -216,9 +224,13 @@ void InsertLast(PPNODE first, int id, char *name, struct Item items[], int itemC
 // Use : Load restaurants from file
 //
 ///////////////////////////////////////////////////////////////
-void ReadFromFile(PPNODE head, const char *filename)
+void ReadFromFile(PPNODE head, char *filename)
 {
     FILE *fp = fopen(filename, "r");
+    if (!fp) {
+        printf("Error opening file!\n");
+        return;
+    }
 
     char line[200];
     int RId, itemNo, itemCount;
@@ -227,7 +239,8 @@ void ReadFromFile(PPNODE head, const char *filename)
 
     while (fgets(line, sizeof(line), fp))
     {
-        line[strcspn(line, "\n")] = 0; 
+        line[strcspn(line, "\r\n")] = 0;  
+
         if (strncmp(line, "RId", 3) == 0)
         {
             if (sscanf(line, "RId %d | RName = \"%[^\"]\"", &RId, RName) == 2)
@@ -237,12 +250,12 @@ void ReadFromFile(PPNODE head, const char *filename)
 
                 while (fgets(line, sizeof(line), fp))
                 {
-                    line[strcspn(line, "\n")] = 0;
+                    line[strcspn(line, "\r\n")] = 0;
 
-                    if (strchr(line, ';')) 
-                        break;
+                    if (strchr(line, ';')) break;  
 
-                    if (sscanf(line, "menu %d, \"%[^\"]\", %f,", &itemNo, itemName, &price) == 3)
+                    if (sscanf(line, "menu %d , \"%[^\"]\" , %f", 
+                               &itemNo, itemName, &price) == 3)
                     {
                         items[itemCount].No = itemNo;
                         strcpy(items[itemCount].name, itemName);
@@ -338,7 +351,8 @@ void AddToCart(struct CartItem cart[], int *CartCount, struct Item item, int Qua
 {
     for (int i = 0; i < *CartCount; i++)
     {
-        if (cart[i].item.No == item.No && strcmp(cart[i].item.name, item.name) == 0)
+        if (cart[i].item.No == item.No && 
+    strcmp(cart[i].item.name, item.name) == 0)
         {
             cart[i].quantity += Quantity;
             printf("Quantity updated!\n");
@@ -351,7 +365,6 @@ void AddToCart(struct CartItem cart[], int *CartCount, struct Item item, int Qua
     (*CartCount)++;
     printf("Item added to cart!\n");
 }
-
 
 ///////////////////////////////////////////////////////////////
 //
@@ -441,11 +454,10 @@ void EmptyCart(struct CartItem cart[], int* iCount)
     printf("Cart is empty...\n");
 }
 
-
 ///////////////////////////////////////////////////////////////
 //
-// Function : Apply Coupons
-// Use : Use for apply coupons to the items
+// Function : Checkout
+// Use : Use for checkout items
 //
 ///////////////////////////////////////////////////////////////
 float Checkout(struct CartItem cart[], int iCount)
@@ -568,23 +580,28 @@ float ApplyCoupons(struct CartItem cart[], int iCount)
 ///////////////////////////////////////////////////////////////
 //
 // Function : InputRestaurantDetails
-// Use : Add new restaurants and their items
+// Use : Add new restaurants and their items 
 //
 ///////////////////////////////////////////////////////////////
-void InputRestaurantDetails(struct node restaurant[], int RestaurantCount)
+void InputRestaurantDetails(struct node restaurant[], int RestaurantCount, char *filename, PPNODE head)
 {
+    FILE *fp = fopen(filename, "a");  
+    
+
     for (int i = 0; i < RestaurantCount; i++)
     {
         printf("\nEnter details for Restaurant %d\n", i + 1);
-        
+
         printf("Enter Restaurant Id: ");
         scanf("%d", &restaurant[i].RId);
 
         printf("Enter Restaurant Name: ");
-        scanf(" %[^\n]", restaurant[i].RName);   
+        scanf(" %49[^\n]", restaurant[i].RName);
 
-        printf("How many Items for Restaurant %s :", restaurant[i].RName);
+        printf("How many Items for Restaurant %s: ", restaurant[i].RName);
         scanf("%d", &restaurant[i].ItemCount);
+
+        fprintf(fp, "\nRId %d | RName = \"%s\"\n", restaurant[i].RId, restaurant[i].RName);
 
         for (int j = 0; j < restaurant[i].ItemCount; j++)
         {
@@ -594,12 +611,33 @@ void InputRestaurantDetails(struct node restaurant[], int RestaurantCount)
             scanf("%d", &restaurant[i].menu[j].No);
 
             printf("Enter Item name: ");
-            scanf(" %[^\n]", restaurant[i].menu[j].name);
+            scanf(" %49[^\n]", restaurant[i].menu[j].name);
 
             printf("Enter Item price: ");
             scanf("%f", &restaurant[i].menu[j].price);
+
+            if (j < restaurant[i].ItemCount - 1)
+            {
+                fprintf(fp, "menu %d, \"%s\", %.2f,\n",
+                        restaurant[i].menu[j].No,
+                        restaurant[i].menu[j].name,
+                        restaurant[i].menu[j].price);
+            }
+            else
+            {
+                fprintf(fp, "menu %d, \"%s\", %.2f\n",
+                        restaurant[i].menu[j].No,
+                        restaurant[i].menu[j].name,
+                        restaurant[i].menu[j].price);
+            }
         }
-    }    
+
+        fprintf(fp, ";\n");
+
+        InsertLast(head, restaurant[i].RId, restaurant[i].RName, restaurant[i].menu, restaurant[i].ItemCount);
+    }
+
+    fclose(fp);
 }
 
 ///////////////////////////////////////////////////////////////
@@ -630,87 +668,201 @@ void DisplayRestaurantDetails(struct node restaurant[], int RestaurantCount)
 
 ///////////////////////////////////////////////////////////////
 //
-// Entry Point Function (main)
+// Function : RemoveRestrauntFromFile
+// Use : Remove a restaurant from linked list and file
 //
 ///////////////////////////////////////////////////////////////
-int main()
+void RemoveRestrauntFromFile(PPNODE head, int RId, char *filename)
 {
-// Declared head with NULL
-    PNODE head = NULL;
+    PNODE temp = *head;
+    PNODE target = NULL;
+    PNODE FileData = NULL;
 
-// Initialized CartItems
-    struct CartItem Cart[50]; 
+    if (temp->RId == RId)
+    {
+        *head = temp->next;
+        if (*head != NULL)
+        {
+            (*head)->prev = NULL;
 
-// Initialize Login
-    struct LoginPage loginpage;
+            free(temp);
+            printf("Restaurant removed...!\n", RId);
+        }
+    }
+    else
+    {
+        while (temp != NULL && temp->RId != RId)
+            temp = temp->next;
 
+        if (temp == NULL)
+        {
+            printf("Invalid Choice...!\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (temp->prev != NULL)
+        {
+            temp->prev->next = temp->next;
+        }
+
+        if (temp->next != NULL)
+        {
+            temp->next->prev = temp->prev;
+        }
+
+        free(temp);
+        printf("Restaurant removed...!\n", RId);
+    }
+
+    FILE *fp = fopen(filename, "w"); 
+
+    FileData = *head;
+
+    while (FileData != NULL)
+    {
+        fprintf(fp, "RId %d | RName = \"%s\"\n", 
+               FileData->RId, FileData->RName);
+
+        for (int j = 0; j < FileData->ItemCount; j++)
+        {
+            fprintf(fp, "menu %d, \"%s\", %.2f\n",
+                    FileData->menu[j].No,
+                    FileData->menu[j].name,
+                    FileData->menu[j].price);
+        }
+        fprintf(fp, ";\n");
+        FileData = FileData->next;
+    }
+    fclose(fp);
+}
+
+///////////////////////////////////////////////////////////////
+//
+// Function : ChaudhariCanteenMenu
+// Use : Display and handle main page options
+//
+///////////////////////////////////////////////////////////////
+void ChaudhariCanteenMenu(PPNODE head, struct LoginPage *loginpage)
+{
 // Initialized Variables
-    int CartCount = 0; 
-    int MainChoice, iChoice, RestChoice, ItemId, Qty, RestCount, OtherRestaurantChoice;
-
-// Read restaurant from file
-    ReadFromFile(&head, "RestaurantNameMenu.txt");
-    
+    int MainChoice, RestChoice, RestCount, InputRestChoice;
 
 ///////////////////////////////////////////////////////////////
 //
 // Main Page
 //
 ///////////////////////////////////////////////////////////////
-    printf("------- Chaudhari Canteen ------\n\n");
+    printf("|----------------------------------------------|\n");
+    printf("|------------- Chaudhari Canteen --------------|\n");
+    printf("|----------------------------------------------|\n");
 
     printf("See available Restaurants as Guest...? Press 1: \n");
     printf("Customer Login...? Press 2: \n");
     printf("Add new Restaurant...? Press 3: \n");
+    printf("Remove Restaurant...? Press 4: \n");
     printf("Exit..? Press 0: \n");
 
-    printf("Enter your choice: \n");
-    scanf("%d",&MainChoice);
+    printf("Enter your choice: ");
+    scanf("%d", &MainChoice);
 
     if (MainChoice == 1)
     {
-        ShowRestaurant(head);
+        system("cls");
+        ShowRestaurant(*head);
 
+        printf("Exit...? Press 0\n");
         printf("Select restaurant: ");
         scanf("%d", &RestChoice);
-        ShowItems(head, RestChoice);
+        if (RestChoice == 0)
+        {
+            exit(EXIT_SUCCESS);
+        }
+        ShowItems(*head, RestChoice);
     }
-    
     else if (MainChoice == 2)
     {
-        CustomerAccount(&loginpage);  
+        CustomerAccount(loginpage);
+        system("cls");
+        ShowRestaurant(*head);
 
-        ShowRestaurant(head);
+        printf("Exit...? Press 0\n");
         printf("Select restaurant: ");
         scanf("%d", &RestChoice);
-        ShowItems(head, RestChoice);
+        if (RestChoice == 0)
+        {
+            exit(EXIT_SUCCESS);
+        }
+        ShowItems(*head, RestChoice);
     }
-
     else if (MainChoice == 3)
     {
-        RestaurantLogin(&loginpage);
+        RestaurantLogin(loginpage);
 
         printf("How many Restaurants do you want to add :");
         scanf("%d", &RestCount);
 
         struct node restaurant[RESTAURANTSIZE];
-
-        InputRestaurantDetails(restaurant, RestCount);
+        InputRestaurantDetails(restaurant, RestCount, "RestaurantNameMenu.txt", head);
         DisplayRestaurantDetails(restaurant, RestCount);
 
-        exit(EXIT_SUCCESS);
-    }
+        printf("Continue to login...? Press 1\n");
+        printf("Exit...? Press 0\n");
+        scanf("%d", &InputRestChoice);
 
+        if (InputRestChoice == 0)
+        {
+            exit(EXIT_SUCCESS);
+        }
+        else if (InputRestChoice == 1)   
+        {
+            //Recursion to reload menu
+            ChaudhariCanteenMenu(head, loginpage);  
+        }
+        else
+        {
+            printf("Invalid Choice...!\n");
+        }
+    }
+    else if (MainChoice == 4)
+    {
+        RestaurantLogin(loginpage);
+
+        int RemoveId;
+        ShowRestaurant(*head);
+
+        printf("Enter restaurant Id to delete restaurant: ");
+        scanf("%d", &RemoveId);
+
+        RemoveRestrauntFromFile(head, RemoveId, "RestaurantNameMenu.txt");
+        sleep(3);
+
+        ShowRestaurant(*head);
+    }
     else if (MainChoice == 0)
     {
+        printf("Thank you... Visit Again...!\n");
         exit(EXIT_SUCCESS);
     }
-    
     else
     {
         printf("Invalid Choice\n");
         exit(EXIT_FAILURE);
     }
+}
+
+///////////////////////////////////////////////////////////////
+//
+// Function : MainMenuPage
+// Use : Handles the main menu loop 
+//
+///////////////////////////////////////////////////////////////
+void MainMenuPage(PNODE head, struct CartItem Cart[], int *CartCount)
+{
+// Declared NODE with NULL
+    PNODE temp = NULL;
+
+// Initialized Variables
+    int iChoice, RestChoice, ItemId, Qty, OtherRestaurantChoice;
 
 ///////////////////////////////////////////////////////////////
 //
@@ -728,6 +880,7 @@ int main()
         printf("6) Remove Items From Cart..?\n");
         printf("7) Apply Coupons\n");
         printf("8) Select Other Restaurant\n");
+        printf("9) Clear Screen\n");
         printf("0) Exit\n");
         printf("Enter your choice: ");
         scanf("%d", &iChoice);
@@ -762,55 +915,81 @@ int main()
             printf("Enter Quantity: ");
             scanf("%d", &Qty);
 
-                PNODE temp = head;
-                while (temp != NULL)
+            temp = head;
+            while (temp != NULL)
+            {
+                if (temp->RId == RestChoice && ItemId <= temp->ItemCount)
                 {
-                    if (temp->RId == RestChoice && ItemId <= temp->ItemCount)
-                    {
-                        AddToCart(Cart, &CartCount, temp->menu[ItemId - 1], Qty);
-                        break;
-                    }
-                    temp = temp->next;
+                    AddToCart(Cart, CartCount, temp->menu[ItemId - 1], Qty);
+                    break;
                 }
-            
+                temp = temp->next;
+            }
             break;
 
         case 4:
-            ShowCart(Cart, CartCount);
+            ShowCart(Cart, *CartCount);
             break;
 
         case 5:
-            Checkout(Cart, CartCount);
+            Checkout(Cart, *CartCount);
             break;
 
         case 6:
-            RemoveItem(Cart, &CartCount);
+            RemoveItem(Cart, CartCount);
             break;
 
         case 7: 
-            ApplyCoupons(Cart, CartCount);
+            ApplyCoupons(Cart, *CartCount);
             break;
 
         case 8: 
             ShowRestaurant(head);
-            EmptyCart(Cart, &CartCount);
+            EmptyCart(Cart, CartCount);
 
             ShowRestaurant(head);
 
             printf("Enter Restaurant ID: ");
             scanf("%d", &OtherRestaurantChoice);
+ 
+            ShowItems(head, OtherRestaurantChoice);
 
-            ShowItems(head, RestChoice);
-
-            RestChoice = OtherRestaurantChoice;
             break;
 
+        case 9:
+            system("cls");
+            break;
 
         default:
             printf("Invalid choice!\n");
             exit(EXIT_FAILURE);
         }
     }
+}
+
+///////////////////////////////////////////////////////////////
+//
+// Entry Point Function (main)
+//
+///////////////////////////////////////////////////////////////
+int main()
+{
+    PNODE head = NULL;
+    struct CartItem Cart[50]; 
+    struct LoginPage loginpage;
+    int CartCount = 0; 
+
+// Load restaurants from file
+    ReadFromFile(&head, "RestaurantNameMenu.txt");
+
+// Handle main menu 
+    ChaudhariCanteenMenu(&head, &loginpage);
+
+// Handle customer menu page 
+    MainMenuPage(head, Cart, &CartCount);
 
     return 0;
 }
+
+
+
