@@ -2,6 +2,7 @@ About Project:
 
 Project Name: Online Shopping Portal Using C Language.
 Author: Yogeshwar Prakash Chaudhari.
+File Name: Final.c
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -39,10 +40,13 @@ The system call with the cls command is used to clear the screen for a better us
 7) Remove items from the cart.
 8) Apply discount coupons.
 9) Switch between restaurants (when switching, the cart is cleared automatically).
+10) Help section where customer can fill a query about any problem facing in the app.
 
 ////////////////////////////////////////////////////////////////////////
 //
 // Future Scope:
 //
 ////////////////////////////////////////////////////////////////////////
+
 1) Implement a Create Account feature for both customers and restaurant owners.
+2) Password Masking.
