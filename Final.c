@@ -38,7 +38,7 @@ struct LoginPage
 ///////////////////////////////////////////////////////////////
 //
 // Structure : Item
-// Use : Holds information about Items in Restaurant
+// Use : Holds information about Items in Restautant
 //
 ///////////////////////////////////////////////////////////////
 struct Item
@@ -363,6 +363,7 @@ void AddToCart(struct CartItem cart[], int *CartCount, struct Item item, int Qua
     cart[*CartCount].item = item;
     cart[*CartCount].quantity = Quantity;
     (*CartCount)++;
+    system("cls");
     printf("Item added to cart!\n");
 }
 
@@ -518,7 +519,7 @@ float ApplyCoupons(struct CartItem cart[], int iCount)
     float GST = Total * 0.18;
     Total += GST;
 
-    if (Total < 100)
+    if (Total < 99)
     {
         printf("\n\nPlease add minimum 100 Rs to apply coupons...\n\n");
     }
@@ -526,6 +527,7 @@ float ApplyCoupons(struct CartItem cart[], int iCount)
     printf("GST (18%%): Rs %.2f\n", GST);
     printf("Total Bill: Rs %.2f\n", Total);
 
+    printf("\nApply Coupons...!\n\n");
     if (Total > 100)
     {
         printf("\nApply Coupons...!\n\n");
@@ -533,7 +535,16 @@ float ApplyCoupons(struct CartItem cart[], int iCount)
         printf("Total price is greater than 250 then 125 Rs off... Apply Press 2\n");
         printf("Total price is greater than 499 then 175 Rs off... Apply Press 3\n");
         printf("Total price is greater than 999 then 299 Rs off... Apply Press 4\n");
+        printf("Exit...? Press 0\n");
+        printf("Enter Coupon Id: \n");
         scanf("%d",&iChoice);
+        
+        if (iChoice == 0)
+        {
+            system("cls");
+            exit(EXIT_SUCCESS);
+        }
+        
 
         switch (iChoice)
         {
@@ -738,6 +749,65 @@ void RemoveRestrauntFromFile(PPNODE head, int RId, char *filename)
 
 ///////////////////////////////////////////////////////////////
 //
+// Function : Help
+// Use : Get help from the developer
+//
+///////////////////////////////////////////////////////////////
+void Help()
+{
+    int hChoice;
+    long int MobileNumber;
+    char Name[50];
+    char Mail[50];
+    char Feedback[100];
+    
+
+    printf("\nWe would love to hear from you..!\n\n");
+
+    printf("1) I would like to give feedback/suggestions.\n");
+    printf("2) Report a Sefety Emergency.\n");
+    printf("3) I found incorrect/outdated information on a page.\n");
+    printf("4) The app is not working the way they should.\n");
+    printf("Exit...? Press 0\n");
+
+    printf("Enter your choice: \n");
+    scanf("%d",&hChoice);
+
+    if (hChoice == 0)
+    {
+        printf("Thank You.. Visit Again...\n");
+        exit(EXIT_SUCCESS);
+    }
+
+    else if (hChoice == 1 && 2 && 3 && 4)
+    {
+        getchar();  
+
+        printf("Your Name: \n");
+        scanf("%[^\n]", Name);
+        getchar();  // clear newline
+
+        printf("Email Address: \n");
+        scanf("%[^\n]", Mail);
+        getchar();  
+
+        printf("Mobile Number: \n");
+        scanf("%d", &MobileNumber); 
+        getchar();
+
+        printf("Type Text: \n");
+        scanf("%[^\n]", Feedback);
+        getchar();
+
+        printf("Hello, %s your feedback saved successfully...\nThank You... Visit Again...\n", Name);
+        sleep(3);
+
+        exit(EXIT_SUCCESS);
+    }
+}
+
+///////////////////////////////////////////////////////////////
+//
 // Function : ChaudhariCanteenMenu
 // Use : Display and handle main page options
 //
@@ -760,6 +830,7 @@ void ChaudhariCanteenMenu(PPNODE head, struct LoginPage *loginpage)
     printf("Customer Login...? Press 2: \n");
     printf("Add new Restaurant...? Press 3: \n");
     printf("Remove Restaurant...? Press 4: \n");
+    printf("Help...? Press 5\n");
     printf("Exit..? Press 0: \n");
 
     printf("Enter your choice: ");
@@ -775,6 +846,7 @@ void ChaudhariCanteenMenu(PPNODE head, struct LoginPage *loginpage)
         scanf("%d", &RestChoice);
         if (RestChoice == 0)
         {
+            printf("Thank You.. Visit Again...\n");
             exit(EXIT_SUCCESS);
         }
         ShowItems(*head, RestChoice);
@@ -790,10 +862,12 @@ void ChaudhariCanteenMenu(PPNODE head, struct LoginPage *loginpage)
         scanf("%d", &RestChoice);
         if (RestChoice == 0)
         {
+            printf("Thank You.. Visit Again...\n");
             exit(EXIT_SUCCESS);
         }
         ShowItems(*head, RestChoice);
     }
+
     else if (MainChoice == 3)
     {
         RestaurantLogin(loginpage);
@@ -811,11 +885,12 @@ void ChaudhariCanteenMenu(PPNODE head, struct LoginPage *loginpage)
 
         if (InputRestChoice == 0)
         {
+            printf("Thank You.. Visit Again...\n");
             exit(EXIT_SUCCESS);
         }
         else if (InputRestChoice == 1)   
         {
-            //Recursion to reload menu
+            // Recursion to reload menu
             ChaudhariCanteenMenu(head, loginpage);  
         }
         else
@@ -823,6 +898,7 @@ void ChaudhariCanteenMenu(PPNODE head, struct LoginPage *loginpage)
             printf("Invalid Choice...!\n");
         }
     }
+
     else if (MainChoice == 4)
     {
         RestaurantLogin(loginpage);
@@ -838,6 +914,12 @@ void ChaudhariCanteenMenu(PPNODE head, struct LoginPage *loginpage)
 
         ShowRestaurant(*head);
     }
+
+    else if (MainChoice == 5)
+    {
+        Help();
+    }
+    
     else if (MainChoice == 0)
     {
         printf("Thank you... Visit Again...!\n");
@@ -864,6 +946,8 @@ void MainMenuPage(PNODE head, struct CartItem Cart[], int *CartCount)
 // Initialized Variables
     int iChoice, RestChoice, ItemId, Qty, OtherRestaurantChoice;
 
+    struct LoginPage *loginpage;
+
 ///////////////////////////////////////////////////////////////
 //
 // Menu Page
@@ -881,6 +965,7 @@ void MainMenuPage(PNODE head, struct CartItem Cart[], int *CartCount)
         printf("7) Apply Coupons\n");
         printf("8) Select Other Restaurant\n");
         printf("9) Clear Screen\n");
+        printf("10) Go to Main Page\n");
         printf("0) Exit\n");
         printf("Enter your choice: ");
         scanf("%d", &iChoice);
@@ -894,21 +979,37 @@ void MainMenuPage(PNODE head, struct CartItem Cart[], int *CartCount)
         switch (iChoice)
         {
         case 1:
+            system("cls");
             ShowRestaurant(head);
             break;
 
         case 2:
+            system("cls");
             ShowRestaurant(head);
-            printf("Enter Restaurant ID: ");
+
+            printf("Exit...? Press 0\n");
+            printf("Enter Restaurant ID: \n");
             scanf("%d", &RestChoice);
+            if (RestChoice == 0)
+            {
+                printf("Thank You.. Visit Again...\n");
+                exit(EXIT_SUCCESS);
+            }
             ShowItems(head, RestChoice);
             break;
 
         case 3:
+            system("cls");
             ShowRestaurant(head);
-            printf("Enter Restaurant ID: ");
-            scanf("%d", &RestChoice);
 
+            printf("Exit...? Press 0\n");
+            printf("Enter Restaurant ID: \n");
+            scanf("%d", &RestChoice);
+            if (RestChoice == 0)
+            {
+                printf("Thank You.. Visit Again...\n");
+                exit(EXIT_SUCCESS);
+            }
             ShowItems(head, RestChoice);
             printf("Enter Item ID: ");
             scanf("%d", &ItemId);
@@ -925,39 +1026,54 @@ void MainMenuPage(PNODE head, struct CartItem Cart[], int *CartCount)
                 }
                 temp = temp->next;
             }
+            
             break;
 
         case 4:
+            system("cls");
             ShowCart(Cart, *CartCount);
             break;
 
         case 5:
+            system("cls");
             Checkout(Cart, *CartCount);
             break;
 
         case 6:
+            system("cls");
             RemoveItem(Cart, CartCount);
             break;
 
         case 7: 
+            system("cls");
             ApplyCoupons(Cart, *CartCount);
             break;
 
         case 8: 
-            ShowRestaurant(head);
+            system("cls");
             EmptyCart(Cart, CartCount);
 
             ShowRestaurant(head);
 
+            printf("Exit...? Press 0\n");
             printf("Enter Restaurant ID: ");
             scanf("%d", &OtherRestaurantChoice);
+            if (OtherRestaurantChoice == 0)
+            {
+                printf("Thank You.. Visit Again...\n");
+                exit(EXIT_SUCCESS);
+            }
  
             ShowItems(head, OtherRestaurantChoice);
-
             break;
 
         case 9:
             system("cls");
+            break;
+
+        case 10:
+            system("cls");
+            ChaudhariCanteenMenu(&head, loginpage); 
             break;
 
         default:
@@ -990,6 +1106,3 @@ int main()
 
     return 0;
 }
-
-
-
