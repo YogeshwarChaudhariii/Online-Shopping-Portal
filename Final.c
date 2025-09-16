@@ -169,6 +169,12 @@ void RestaurantLogin(struct LoginPage* loginpage)
 
     fp = fopen("RestaurantLogin.txt", "r");
 
+    if (!fp) 
+    {
+        printf("Error opening file!\n");
+        exit(EXIT_FAILURE);
+    }
+
     printf("Enter your username: ");
     scanf("%s", loginpage->UserName);  
 
@@ -1167,4 +1173,5 @@ int main()
 
     return 0;
 }
+
 
