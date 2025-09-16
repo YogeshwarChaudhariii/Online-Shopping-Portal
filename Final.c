@@ -565,10 +565,14 @@ float Checkout(struct CartItem cart[], int iCount)
 ///////////////////////////////////////////////////////////////
 float ApplyCoupons(struct CartItem cart[], int iCount)
 {
-    int i = 0, iChoice = 0;
-    float Total = 0;
+    float Total = 0, GST = 0;
+    int i = 0, iChoice = 0, MobileNumber;
+    
+    char CustomerName[100], Address[200], RestaurantNote[200];
+    char CardDetails[20], CardExpiryDate[10];
 
     printf("\n------ Apply Coupon ------\n");
+
     if (iCount == 0) 
     {
         printf("Your cart is empty...\n");
@@ -577,81 +581,135 @@ float ApplyCoupons(struct CartItem cart[], int iCount)
 
     for (i = 0; i < iCount; i++)
     {
-        printf("%s x %d = Rs %.2f\n",
-            cart[i].item.name, cart[i].quantity,
-            cart[i].item.price * cart[i].quantity);
-
-            Total += cart[i].item.price * cart[i].quantity;
+        float itemTotal = cart[i].item.price * cart[i].quantity;
+        printf("%s x %d = Rs %.2f\n", cart[i].item.name, cart[i].quantity, itemTotal);
+        Total += itemTotal;
     }
-    float GST = Total * 0.18;
+    GST = Total * 0.18;
     Total += GST;
-
-    if (Total < 99)
-    {
-        printf("\n\nPlease add minimum 100 Rs to apply coupons...\n\n");
-    }
 
     printf("GST (18%%): Rs %.2f\n", GST);
     printf("Total Bill: Rs %.2f\n", Total);
 
-    printf("\nApply Coupons...!\n\n");
-    if (Total > 100)
+    if (Total < 100)
     {
-        printf("\nApply Coupons...!\n\n");
-        printf("Total price is greater than 100 then 40 Rs off... Apply Press 1\n");
-        printf("Total price is greater than 250 then 125 Rs off... Apply Press 2\n");
-        printf("Total price is greater than 499 then 175 Rs off... Apply Press 3\n");
-        printf("Total price is greater than 999 then 299 Rs off... Apply Press 4\n");
-        printf("Exit...? Press 0\n");
-        printf("Enter Coupon Id: \n");
-        scanf("%d",&iChoice);
-        
-        if (iChoice == 0)
-        {
-            system("cls");
-            exit(EXIT_SUCCESS);
-        }
-        
+        printf("\nPlease add items worth at least Rs 100 to apply coupons...\n\n");
+        return Total;
+    }
 
-        switch (iChoice)
+    printf("\nApply Coupons:\n");
+    printf("1) Bill > 100 : Rs 40 off\n");
+    printf("2) Bill > 250 : Rs 125 off\n");
+    printf("3) Bill > 499 : Rs 175 off\n");
+    printf("4) Bill > 999 : Rs 299 off\n");
+    printf("0) Skip\n");
+    printf("Enter Coupon Id: ");
+    scanf("%d",&iChoice);
+
+    switch (iChoice)
+    {
+        case 1: 
         {
-            case 1:
-                if (Total > 100)
-                {
-                    Total = Total - 40;
-                    printf("\nTotal Bill: Rs %.2f\n", Total);
-                }
+            if (Total > 100)
+            {
+                Total -= 40; 
                 break;
-            
-            case 2:
-                if (Total > 250)
-                {
-                    Total = Total - 125;
-                    printf("\nTotal Bill: Rs %.2f\n", Total);
-                }
+            }
+        }
+        case 2: 
+        {
+            if (Total > 250)
+            {
+                Total -= 125; 
                 break;
-            
-            case 3:
-                if (Total > 499)
-                {
-                    Total = Total - 175;
-                    printf("\nTotal Bill: Rs %.2f\n", Total);
-                }
+            }
+        }
+        case 3: 
+        {
+            if (Total > 499)
+            {
+                Total -= 175; 
                 break;
-            
-            case 4:
-                if (Total > 999)
-                {
-                    Total = Total - 299;
-                    printf("\nTotal Bill: Rs %.2f\n", Total);
-                }
+            }
+        }
+        case 4: 
+        {
+            if (Total > 999)
+            {
+                Total -= 299; 
                 break;
-            
-            default:
-                printf("Invalid Choice\n");
-                break;
+            }
+        }
+        case 0: 
+        {
+            break;
+        }
+        default: 
+        {
+            printf("Invalid Choice\n"); 
+            break;
         }
     }
+
+    printf("\nFinal Total: Rs %.2f\n", Total);
+
+    printf("\nPlace Order? (1 = Yes, 0 = No): ");
+    scanf("%d",&iChoice);
+
+    if (iChoice == 1)
+    {
+        printf("Enter your full name: ");
+        scanf(" %[^\n]", CustomerName);
+
+        printf("Enter your Card Number: ");
+        scanf("%s", CardDetails);
+
+        printf("Expiry Date (MM/YY): ");
+        scanf("%s", CardExpiryDate);
+
+        printf("Enter Address: ");
+        scanf(" %[^\n]", Address);
+
+        printf("Enter Mobile Number: +91 ");
+        scanf("%d",&MobileNumber);
+
+        printf("Any note for Restaurant? (Press 1 for Yes, 0 for No): ");
+        scanf("%d", &iChoice);
+
+        if (iChoice == 1)
+        {
+            printf("Enter note: ");
+            scanf(" %[^\n]", RestaurantNote);
+            sleep(2);
+            printf("\nNote sent: %s\n", RestaurantNote);
+            printf("\n Order placed successfully, %s..!\n Your bill: Rs %.2f\n", CustomerName, Total);
+        }
+
+        else if (iChoice == 0)
+        {
+            exit(EXIT_SUCCESS);
+            printf("Thank you.. Visit Again...\n");
+        }
+
+        else
+        {
+            printf("Invalid Choice\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    else if (iChoice == 0)
+    {
+        exit(EXIT_SUCCESS);
+        printf("Thank you.. Visit Again...\n");
+    }
+
+    else
+    {
+        printf("Invalid Choice\n");
+        exit(EXIT_FAILURE);
+    }
+
     return Total;
 }
 
@@ -1029,7 +1087,7 @@ void MainMenuPage(PNODE head, struct CartItem Cart[], int *CartCount)
         printf("4) Show Cart\n");
         printf("5) CheckOut\n");
         printf("6) Remove Items From Cart..?\n");
-        printf("7) Apply Coupons\n");
+        printf("7) Apply Coupons & Place Order\n");
         printf("8) Select Other Restaurant\n");
         printf("9) Clear Screen\n");
         printf("10) Go to Main Page\n");
@@ -1173,5 +1231,6 @@ int main()
 
     return 0;
 }
+
 
 
