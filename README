@@ -25,6 +25,9 @@ At runtime, the program fetches and displays this data dynamically.
 4) Clear Screen (cls Command)
 The system call with the cls command is used to clear the screen for a better user experience.
 
+5) Password Masking:
+Password input is masked with * characters.
+
 ////////////////////////////////////////////////////////////////////////
 //
 // Other Features:
@@ -49,4 +52,18 @@ The system call with the cls command is used to clear the screen for a better us
 ////////////////////////////////////////////////////////////////////////
 
 1) Implement a Create Account feature for both customers and restaurant owners.
-2) Password Masking.
+
+////////////////////////////////////////////////////////////////////////
+//
+// Login Credentials:
+//
+////////////////////////////////////////////////////////////////////////
+
+1) Customer Login:
+UserName: ypc
+Password: 1234
+
+2) Restaurant Owner Login:
+UserName: test123
+Password: 1234
+
