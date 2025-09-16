@@ -682,6 +682,13 @@ float ApplyCoupons(struct CartItem cart[], int iCount)
             scanf(" %[^\n]", RestaurantNote);
             sleep(2);
             printf("\nNote sent: %s\n", RestaurantNote);
+            
+            printf("\nOrder is placing and note is sending to the restaurant... Please Wait...\n");
+
+            sleep(5);
+            system("cls");
+
+            printf("\nNote sent: %s\n", RestaurantNote);
             printf("\n Order placed successfully, %s..!\n Your bill: Rs %.2f\n", CustomerName, Total);
         }
 
@@ -1231,6 +1238,7 @@ int main()
 
     return 0;
 }
+
 
 
 
