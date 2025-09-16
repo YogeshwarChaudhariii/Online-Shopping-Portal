@@ -10,6 +10,9 @@
 // Unix Standart Header File (sleep function)
 #include<unistd.h>
 
+// Console Input-Output Header File (getch() function)
+#include<conio.h>
+
 ///////////////////////////////////////////////////////////////
 //
 //  User defined Macros
@@ -90,14 +93,46 @@ void CustomerAccount(struct LoginPage* loginpage)
 {
     FILE *fp;
     char line[100], fileUser[20], filePass[16];
+    int i = 0;
+    char ch;
 
     fp = fopen("AccountLogin.txt", "r");
+
+    if (!fp) 
+    {
+        printf("Error opening file!\n");
+        exit(EXIT_FAILURE);
+    }
 
     printf("Enter your username: ");
     scanf("%s", loginpage->UserName);  
 
     printf("Enter your password: ");
-    scanf("%s", loginpage->PassWord);
+
+    while (1) 
+    {
+        ch = getch();
+        if (ch == 13) 
+        {  
+            break;
+        }
+        else if (ch == 8) 
+        { 
+            if (i > 0) 
+            {
+                i--;
+                printf("\b \b"); 
+            }
+        }
+        else if (i < 15) 
+        { 
+            loginpage->PassWord[i++] = ch;
+            printf("*");
+        }
+    }
+
+    loginpage->PassWord[i] = '\0'; 
+    printf("\n");
 
     while (fgets(line, sizeof(line), fp)) 
     {
@@ -129,6 +164,8 @@ void RestaurantLogin(struct LoginPage* loginpage)
 {
     FILE *fp;
     char line[100], fileUser[20], filePass[16];
+    int i = 0;
+    char ch;
 
     fp = fopen("RestaurantLogin.txt", "r");
 
@@ -136,7 +173,31 @@ void RestaurantLogin(struct LoginPage* loginpage)
     scanf("%s", loginpage->UserName);  
 
     printf("Enter your password: ");
-    scanf("%s", loginpage->PassWord);
+
+    while (1) 
+    {
+        ch = getch();
+        if (ch == 13) 
+        {  
+            break;
+        }
+        else if (ch == 8) 
+        { 
+            if (i > 0) 
+            {
+                i--;
+                printf("\b \b"); 
+            }
+        }
+        else if (i < 15) 
+        { 
+            loginpage->PassWord[i++] = ch;
+            printf("*");
+        }
+    }
+
+    loginpage->PassWord[i] = '\0'; 
+    printf("\n");
 
     while (fgets(line, sizeof(line), fp)) 
     {
@@ -1106,3 +1167,4 @@ int main()
 
     return 0;
 }
+
