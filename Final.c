@@ -694,8 +694,7 @@ float ApplyCoupons(struct CartItem cart[], int iCount)
 
         else if (iChoice == 0)
         {
-            exit(EXIT_SUCCESS);
-            printf("Thank you.. Visit Again...\n");
+            printf("\n Order placed successfully, %s..!\n Your bill: Rs %.2f\n", CustomerName, Total);
         }
 
         else
@@ -1238,6 +1237,7 @@ int main()
 
     return 0;
 }
+
 
 
 
