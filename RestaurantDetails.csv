@@ -1,0 +1,16 @@
+RestaurantId,RestaurantName,ItemId,ItemName,Price
+1,Good Food,1,Samosa,25.00
+1,Good Food,2,Kachori,20.00
+1,Good Food,3,Lassi,85.00
+1,Good Food,4,Paneer,50.00
+1,Good Food,5,Kanda Bhaji,90.00
+2,Kakke da Paratha,1,Bharta,125.00
+2,Kakke da Paratha,2,Biryani,135.00
+2,Kakke da Paratha,3,Paratha,60.00
+2,Kakke da Paratha,4,Lassi,85.00
+2,Kakke da Paratha,5,Kanda Bhaji,70.00
+3,Home Meal,1,Roti,15.00
+3,Home Meal,2,Kanda Pohe,30.00
+3,Home Meal,3,Tikka Masala,120.00
+3,Home Meal,4,Kofta,150.00
+3,Home Meal,5,Dal Khichdi,110.00
