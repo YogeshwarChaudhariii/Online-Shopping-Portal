@@ -28,6 +28,9 @@ The system call with the cls command is used to clear the screen for a better us
 5) Password Masking:
 Password input is masked with * characters.
 
+6) Restaurant Details in Excel Sheet
+Restaurant details can be exported to an Excel sheet (RestaurantDetails.csv file).
+
 ////////////////////////////////////////////////////////////////////////
 //
 // Other Features:
