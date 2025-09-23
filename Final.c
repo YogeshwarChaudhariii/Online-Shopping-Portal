@@ -293,50 +293,48 @@ void InsertLast(PPNODE first, int id, char *name, struct Item items[], int itemC
 ///////////////////////////////////////////////////////////////
 void ReadFromFile(PPNODE head, char *filename)
 {
-    FILE *fp = fopen(filename, "r");
-    if (!fp) {
-        printf("Error opening file!\n");
+    FILE *fin = fopen(filename, "r");
+    if (!fin)
+    {
+        printf("Error opening %s!\n", filename);
         return;
     }
 
-    char line[200];
-    int RId, itemNo, itemCount;
-    char RName[50], itemName[50];
-    float price;
+    char line[256];
+    int rid = 0, itemCount = 0;
+    char rname[100];
+    struct Item items[50];  
 
-    while (fgets(line, sizeof(line), fp))
+    while (fgets(line, sizeof(line), fin))
     {
-        line[strcspn(line, "\r\n")] = 0;  
+        line[strcspn(line, "\n")] = 0; // remove newline
 
         if (strncmp(line, "RId", 3) == 0)
         {
-            if (sscanf(line, "RId %d | RName = \"%[^\"]\"", &RId, RName) == 2)
+            itemCount = 0; // reset menu count
+            sscanf(line, "RId %d | RName = \"%[^\"]\"", &rid, rname);
+        }
+        else if (strncmp(line, "menu", 4) == 0)
+        {
+            int id;
+            char iname[100];
+            float price;
+
+            sscanf(line, "menu %d, \"%[^\"]\", %f", &id, iname, &price);
+
+            items[itemCount].No = id;
+            strcpy(items[itemCount].name, iname);
+            items[itemCount].price = price;
+            itemCount++;
+
+            // If this line ends with ';', it's the last menu
+            if (strchr(line, ';'))
             {
-                struct Item items[ITEMSIZE];
-                itemCount = 0;
-
-                while (fgets(line, sizeof(line), fp))
-                {
-                    line[strcspn(line, "\r\n")] = 0;
-
-                    if (strchr(line, ';')) break;  
-
-                    if (sscanf(line, "menu %d , \"%[^\"]\" , %f", 
-                               &itemNo, itemName, &price) == 3)
-                    {
-                        items[itemCount].No = itemNo;
-                        strcpy(items[itemCount].name, itemName);
-                        items[itemCount].price = price;
-                        itemCount++;
-                    }
-                }
-
-                InsertLast(head, RId, RName, items, itemCount);
+                InsertLast(head, rid, rname, items, itemCount);
             }
         }
     }
-
-    fclose(fp);
+    fclose(fin);
 }
 
 ///////////////////////////////////////////////////////////////
@@ -939,6 +937,43 @@ void Help()
 
 ///////////////////////////////////////////////////////////////
 //
+// Function : RestaurantDetailsCSVfile
+// Use : Export restaurant details into a CSV file
+//
+///////////////////////////////////////////////////////////////
+void RestaurantDetailsCSVfile(PPNODE head, char *filename)
+{
+    FILE *fout = fopen(filename, "w");
+    if (!fout)
+    {
+        printf("Error opening %s!\n", filename);
+        return;
+    }
+
+    // Write header
+    fprintf(fout, "RestaurantId,RestaurantName,ItemId,ItemName,Price\n");
+
+    PNODE temp = *head;
+    while (temp != NULL)
+    {
+        for (int i = 0; i < temp->ItemCount; i++)
+        {
+            fprintf(fout, "%d,%s,%d,%s,%.2f\n",
+                    temp->RId,
+                    temp->RName,
+                    temp->menu[i].No,
+                    temp->menu[i].name,
+                    temp->menu[i].price);
+        }
+        temp = temp->next;
+    }
+
+    fclose(fout);
+    printf("Restaurant details exported successfully to %s\n", filename);
+}
+
+///////////////////////////////////////////////////////////////
+//
 // Function : ChaudhariCanteenMenu
 // Use : Display and handle main page options
 //
@@ -962,6 +997,7 @@ void ChaudhariCanteenMenu(PPNODE head, struct LoginPage *loginpage)
     printf("Add new Restaurant...? Press 3: \n");
     printf("Remove Restaurant...? Press 4: \n");
     printf("Help...? Press 5\n");
+    printf("Export restaurant details int csv file...? Press 6\n");
     printf("Exit..? Press 0: \n");
 
     printf("Enter your choice: ");
@@ -1056,6 +1092,15 @@ void ChaudhariCanteenMenu(PPNODE head, struct LoginPage *loginpage)
         printf("Thank you... Visit Again...!\n");
         exit(EXIT_SUCCESS);
     }
+
+    else if (MainChoice == 6)
+    {
+        RestaurantLogin(loginpage);
+
+        RestaurantDetailsCSVfile(head, "RestaurantDetails.csv");
+        exit(EXIT_SUCCESS);
+    }
+        
     else
     {
         printf("Invalid Choice\n");
@@ -1232,11 +1277,15 @@ int main()
 // Handle main menu 
     ChaudhariCanteenMenu(&head, &loginpage);
 
+// Export Restaurant Details to csv
+    RestaurantDetailsCSVfile(&head, "RestaurantDetails.csv");
+
 // Handle customer menu page 
     MainMenuPage(head, Cart, &CartCount);
 
     return 0;
 }
+
 
 
 
