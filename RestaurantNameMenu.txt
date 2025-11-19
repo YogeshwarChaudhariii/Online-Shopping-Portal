@@ -20,5 +20,5 @@ menu 1, "Samosa", 25
 menu 2, "Kachori", 20
 menu 3, "Lassi", 85
 menu 4, "Paneer", 50
-menu 5, "Kanda Bhaji", 90
+menu 5, "Kanda Bhaji", 123220
 ;
