@@ -1,3 +1,6 @@
+// Standard Input Output Stream
+#include<iostream>
+
 // Standart Input Output Header File
 #include<stdio.h>
 
@@ -1285,6 +1288,7 @@ int main()
 
     return 0;
 }
+
 
 
 
